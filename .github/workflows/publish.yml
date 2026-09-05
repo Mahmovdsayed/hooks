@@ -20,5 +20,11 @@ jobs:
         with:
           bun-version: "1.4.0"
 
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
       - run: bun install --frozen-lockfile
-      - run: bun publish
+      - run: npm publish --provenance
