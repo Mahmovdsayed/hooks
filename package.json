@@ -1,5 +1,10 @@
 {
   "name": "@hirely/hooks",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mahmovdsayed/hooks.git"
+  },
+  "homepage": "https://github.com/Mahmovdsayed/hooks#readme",
   "version": "0.1.0",
   "description": "React hooks for forms with Zod validation, optional Axios and Sonner, React Query integration.",
   "main": "./dist/index.cjs",

@@ -4,7 +4,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@hirely/hooks.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/@hirely/hooks)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.0+-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18_%7C_19-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![Bun](https://img.shields.io/badge/Bun-Optimized-fbf0df?style=flat-square&logo=bun&logoColor=black)](https://bun.sh)
 [![Tests](https://img.shields.io/badge/Tests-100%25_Passing-brightgreen?style=flat-square)](https://github.com/hirely/hooks)
