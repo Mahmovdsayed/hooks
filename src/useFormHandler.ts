@@ -21,7 +21,11 @@ export type ResponseParser = (responseData: any) => {
 export type ErrorParser = (error: any) => { message: string };
 
 export interface UseFormHandlerOptions<
-  TSchema extends ZodType<FieldValues, any, any> = ZodType<FieldValues, any, any>,
+  TSchema extends ZodType<FieldValues, any, any> = ZodType<
+    FieldValues,
+    any,
+    any
+  >,
   TData extends FieldValues = z.infer<TSchema>,
 > {
   schema: TSchema;
@@ -75,7 +79,8 @@ let axiosLoadPromise: Promise<any> | null = null;
 const getAxios = async () => {
   if (cachedAxios) return cachedAxios;
   if (!axiosLoadPromise) {
-    axiosLoadPromise = import("axios")
+    // @ts-ignore – axios is optional
+    axiosLoadPromise = import(/* webpackIgnore: true */ "axios")
       .then((m) => {
         cachedAxios = m.default || m;
         return cachedAxios;
@@ -93,7 +98,8 @@ let sonnerLoadPromise: Promise<any> | null = null;
 const getSonnerToast = async () => {
   if (cachedSonnerToast) return cachedSonnerToast;
   if (!sonnerLoadPromise) {
-    sonnerLoadPromise = import("sonner")
+    // @ts-ignore – sonner is optional
+    sonnerLoadPromise = import(/* webpackIgnore: true */ "sonner")
       .then((m) => {
         cachedSonnerToast = m.toast || m;
         return cachedSonnerToast;
@@ -202,7 +208,9 @@ export function useFormHandlerInternal<
         if (useFormData) {
           const formData = new FormData();
           if (transformedData && typeof transformedData === "object") {
-            for (const [key, value] of Object.entries(transformedData as Record<string, unknown>)) {
+            for (const [key, value] of Object.entries(
+              transformedData as Record<string, unknown>,
+            )) {
               if (value instanceof File || value instanceof Blob) {
                 formData.append(key, value);
               } else if (Array.isArray(value)) {
@@ -240,7 +248,9 @@ export function useFormHandlerInternal<
             url: endpoint,
             data: payload,
             ...axiosConfig,
-            signal: enableAbort ? abortControllerRef.current?.signal : undefined,
+            signal: enableAbort
+              ? abortControllerRef.current?.signal
+              : undefined,
             headers: useFormData
               ? {
                   ...axiosConfig.headers,
@@ -289,7 +299,10 @@ export function useFormHandlerInternal<
     [form],
   );
 
-  const onSubmit = useMemo(() => form.handleSubmit(submitHandler), [form, submitHandler]);
+  const onSubmit = useMemo(
+    () => form.handleSubmit(submitHandler),
+    [form, submitHandler],
+  );
 
   return useMemo(
     () => ({
