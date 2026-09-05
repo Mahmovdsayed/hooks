@@ -52,8 +52,7 @@
   - [Optimistic Updates](#optimistic-updates)
   - [Native `fetch` Client](#using-native-fetch)
   - [Custom Response & Error Parsers](#custom-response--error-parsers)
-- [Benchmarks & Performance](#benchmarks--performance)
-- [Development & Testing](#development--testing)
+- [Development & Building](#development--building)
 - [License](#license)
 
 ---
@@ -500,53 +499,9 @@ useFormHandler({
 
 ---
 
-## Benchmarks & Performance
-
-`@hirely/hooks` is engineered from the ground up for minimal CPU latency, zero unnecessary React re-renders, and near-instantaneous builds.
-
-### Runtime Micro-Benchmarks
-
-Measured over 1,000 runs using high-resolution timers (`performance.now()`):
-
-| Process | Measured Latency | Frame Budget Impact (60 FPS) | Description |
-|---|---|---|---|
-| **Hook Initialization & Mount** | **`0.192 ms`** | `< 1.2%` | Initializes React Hook Form, sets up schema resolver, and mounts refs. |
-| **Form Submit Lifecycle** | **`0.098 ms`** | `< 0.6%` | Full validation, `onMutate`, service dispatch, parser, and reset. |
-| **`FormData` Auto-Serialization** | **`0.049 ms`** | `< 0.3%` | High-speed serialization of files, blobs, arrays, and fields. |
-| **Inline Prop Re-render Cost** | **`0.000 ms`** | `0%` *(None)* | `onSubmit` and handlers remain referentially stable across renders. |
-
-### Dynamic Import Caching
-
-Because `axios` and `sonner` are optional, they are lazy-loaded dynamically:
-
-| Stage | Latency | Speedup |
-|---|---|---|
-| **Initial Call (Uncached)** | `67.62 ms` | Baseline |
-| **Subsequent Calls (Cached)** | **`0.010 ms`** *(10 µs)* | **~6,700× faster** |
-
-### Build & Test Performance
-
-| Tool / Pipeline | Duration | Output |
-|---|---|---|
-| **Dual Bundle Build (`bun build`)** | **`24.9 ms`** | Native ESM (`16.6 KB`) + CommonJS (`18.4 KB`) |
-| **Type Declaration Generation (`tsc`)** | **`171.7 ms`** | Full `.d.ts` declaration maps |
-| **Complete Build Pipeline** | **`216.8 ms`** | Complete distribution ready for publishing |
-| **Full Automated Test Suite** | **`315.0 ms`** | 18 tests across 6 suites (100% passing) |
-
-### Key Architectural Optimizations
-
-1. **Callback Stabilization (Ref Inversion)**: Handlers and callbacks (`onSuccess`, `onError`, `transformData`, `onMutate`, etc.) are referenced via internal mutable refs. Passing inline arrow functions in JSX will **never** cause `onSubmit` to change identity or trigger re-renders in child inputs.
-2. **Dynamic Import Caching**: Module loading promises for optional dependencies are memoized in memory. After the first invocation, subsequent submissions resolve in microseconds.
-3. **Dual ESM & CommonJS Bundling**: Built with Bun into native ESM (`dist/index.mjs`) and CommonJS (`dist/index.cjs`) with tree-shaking annotations and RSC `"use client";` directives.
-
----
-
-## Development & Testing
+## Development & Building
 
 ```bash
-# Run automated tests
-bun run test
-
 # Run TypeScript typecheck
 bun run typecheck
 
