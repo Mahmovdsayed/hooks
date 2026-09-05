@@ -52,7 +52,6 @@
   - [Optimistic Updates](#optimistic-updates)
   - [Native `fetch` Client](#using-native-fetch)
   - [Custom Response & Error Parsers](#custom-response--error-parsers)
-- [Development & Building](#development--building)
 - [License](#license)
 
 ---
@@ -495,18 +494,6 @@ useFormHandler({
     message: err.response?.data?.errorDescription || err.message || "Operation failed",
   }),
 });
-```
-
----
-
-## Development & Building
-
-```bash
-# Run TypeScript typecheck
-bun run typecheck
-
-# Build bundle and declarations
-bun run build
 ```
 
 ---
