@@ -1,4 +1,4 @@
-name: Publish to npm
+name: Verify Package
 
 on:
   push:
@@ -7,10 +7,9 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
-  build-and-publish:
+  verify:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,6 +37,3 @@ jobs:
 
       - name: Verify package
         run: npm pack --dry-run
-
-      - name: Publish to npm
-        run: npm publish --provenance --access public
