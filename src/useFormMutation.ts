@@ -1,4 +1,3 @@
-"use client";
 
 import { useMutation } from "@tanstack/react-query";
 import type {
@@ -14,22 +13,14 @@ import type { ZodType, z } from "zod";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 import { useMemo, useRef } from "react";
 
-let cachedAxios: any = null;
-let axiosLoadPromise: Promise<any> | null = null;
-const getAxios = async () => {
-  if (cachedAxios) return cachedAxios;
-  if (!axiosLoadPromise) {
-    axiosLoadPromise = import("axios")
-      .then((m) => {
-        cachedAxios = m.default || m;
-        return cachedAxios;
-      })
-      .catch(() => {
-        axiosLoadPromise = null;
-        return null;
-      });
+const getAxios = (): any | null => {
+  try {
+    // @ts-ignore – axios is an optional peer dependency
+    const m = require("axios");
+    return m.default || m;
+  } catch {
+    return null;
   }
-  return axiosLoadPromise;
 };
 
 export type UseFormMutationReturn<
@@ -82,7 +73,7 @@ export function useFormMutation<
         return (await currentOpts.service(data)) as TResponse;
       }
       if (currentOpts.endpoint) {
-        const axiosInstance = await getAxios();
+        const axiosInstance = getAxios();
         if (!axiosInstance) {
           throw new Error(
             "axios is not installed. Please install axios or provide a custom `service` function.",

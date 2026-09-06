@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useRef, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import type {
@@ -74,42 +72,24 @@ const defaultParseError: ErrorParser = (err) => {
   return { message };
 };
 
-let cachedAxios: any = null;
-let axiosLoadPromise: Promise<any> | null = null;
-const getAxios = async () => {
-  if (cachedAxios) return cachedAxios;
-  if (!axiosLoadPromise) {
-    // @ts-ignore – axios is optional
-    axiosLoadPromise = import(/* webpackIgnore: true */ "axios")
-      .then((m) => {
-        cachedAxios = m.default || m;
-        return cachedAxios;
-      })
-      .catch(() => {
-        axiosLoadPromise = null;
-        return null;
-      });
+const getAxios = (): any | null => {
+  try {
+    // @ts-ignore – axios is an optional peer dependency
+    const m = require("axios");
+    return m.default || m;
+  } catch {
+    return null;
   }
-  return axiosLoadPromise;
 };
 
-let cachedSonnerToast: any = null;
-let sonnerLoadPromise: Promise<any> | null = null;
-const getSonnerToast = async () => {
-  if (cachedSonnerToast) return cachedSonnerToast;
-  if (!sonnerLoadPromise) {
-    // @ts-ignore – sonner is optional
-    sonnerLoadPromise = import(/* webpackIgnore: true */ "sonner")
-      .then((m) => {
-        cachedSonnerToast = m.toast || m;
-        return cachedSonnerToast;
-      })
-      .catch(() => {
-        sonnerLoadPromise = null;
-        return null;
-      });
+const getSonnerToast = (): any | null => {
+  try {
+    // @ts-ignore – sonner is an optional peer dependency
+    const m = require("sonner");
+    return m.toast || m;
+  } catch {
+    return null;
   }
-  return sonnerLoadPromise;
 };
 
 export function useFormHandlerInternal<
@@ -175,7 +155,7 @@ export function useFormHandlerInternal<
       if (notify) {
         notifyFn = notify;
       } else {
-        const toast = await getSonnerToast();
+        const toast = getSonnerToast();
         if (toast) {
           notifyFn = (message: string, type: "success" | "error") => {
             if (type === "success") {
@@ -236,7 +216,7 @@ export function useFormHandlerInternal<
             throw new Error("No endpoint or service provided");
           }
 
-          const axiosInstance = await getAxios();
+          const axiosInstance = getAxios();
           if (!axiosInstance) {
             throw new Error(
               "axios is not installed. Please install axios or provide a custom `service` function.",
