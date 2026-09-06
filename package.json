@@ -26,8 +26,8 @@
     "build": "bun run clean && bun run build:js && bun run build:types",
     "build:js": "bun build ./src/index.ts --banner '\"use client\";' --outfile ./dist/index.mjs --target node --format esm --external react --external react-hook-form --external zod --external @tanstack/react-query --external axios --external sonner && bun build ./src/index.ts --outfile ./dist/index.cjs --target node --format cjs --external react --external react-hook-form --external zod --external @tanstack/react-query --external axios --external sonner && cp ./dist/index.mjs ./dist/index.js",
     "build:types": "tsc --emitDeclarationOnly --outDir dist",
-    "test": "bun test",
     "typecheck": "tsc --noEmit",
+    "test": "bun test",
     "prepublishOnly": "bun run build",
     "release": "bun run build && bun publish"
   },
