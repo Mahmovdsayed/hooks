@@ -1,4 +1,3 @@
-
 import { useMutation } from "@tanstack/react-query";
 import type {
   UseMutationOptions,
@@ -12,16 +11,6 @@ import type { UseFormHandlerOptions } from "./useFormHandler";
 import type { ZodType, z } from "zod";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 import { useMemo, useRef } from "react";
-
-const getAxios = (): any | null => {
-  try {
-    // @ts-ignore – axios is an optional peer dependency
-    const m = require("axios");
-    return m.default || m;
-  } catch {
-    return null;
-  }
-};
 
 export type UseFormMutationReturn<
   TSchema extends ZodType<FieldValues, any, any>,
@@ -48,7 +37,11 @@ export type UseFormMutationReturn<
 };
 
 export function useFormMutation<
-  TSchema extends ZodType<FieldValues, any, any> = ZodType<FieldValues, any, any>,
+  TSchema extends ZodType<FieldValues, any, any> = ZodType<
+    FieldValues,
+    any,
+    any
+  >,
   TData extends FieldValues = z.infer<TSchema>,
   TResponse = any,
   TError = DefaultError,
@@ -68,26 +61,56 @@ export function useFormMutation<
 
   const mutationFn = useMemo(() => {
     return async (data: TData): Promise<TResponse> => {
-      const currentOpts = optionsRef.current;
-      if (currentOpts.service) {
-        return (await currentOpts.service(data)) as TResponse;
+      const o = optionsRef.current;
+
+      if (o.service) {
+        return (await o.service(data)) as TResponse;
       }
-      if (currentOpts.endpoint) {
-        const axiosInstance = getAxios();
-        if (!axiosInstance) {
-          throw new Error(
-            "axios is not installed. Please install axios or provide a custom `service` function.",
-          );
+
+      if (o.endpoint) {
+        if (o.axiosInstance) {
+          const res = await o.axiosInstance({
+            method: o.method || "post",
+            url: o.endpoint,
+            data,
+            ...o.axiosConfig,
+          });
+          return res.data;
         }
-        const res = await axiosInstance({
-          method: currentOpts.method || "post",
-          url: currentOpts.endpoint,
-          data,
-          ...currentOpts.axiosConfig,
+
+        const axiosConfig = o.axiosConfig || {};
+        const headers: Record<string, string> = {
+          ...(axiosConfig.headers || {}),
+          "Content-Type": "application/json",
+        };
+        const res = await fetch(o.endpoint, {
+          method: (o.method || "post").toUpperCase(),
+          headers,
+          body: JSON.stringify(data),
+          credentials: axiosConfig.withCredentials ? "include" : "same-origin",
         });
-        return res.data;
+
+        let responseData: any;
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          responseData = await res.json();
+        } else {
+          responseData = await res.text();
+        }
+
+        if (!res.ok) {
+          const message =
+            (typeof responseData === "object" && responseData?.message) ||
+            `Request failed with status ${res.status}`;
+          const error: any = new Error(message);
+          error.response = { data: responseData, status: res.status };
+          throw error;
+        }
+
+        return responseData as TResponse;
       }
-      throw new Error("No service or endpoint provided");
+
+      throw new Error("[@hirely/hooks] No `service` or `endpoint` provided.");
     };
   }, []);
 

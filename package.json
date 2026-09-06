@@ -5,8 +5,8 @@
     "url": "git+https://github.com/Mahmovdsayed/hooks.git"
   },
   "homepage": "https://github.com/Mahmovdsayed/hooks#readme",
-  "version": "1.0.21",
-  "description": "React hooks for forms with Zod validation, optional Axios and Sonner, React Query integration.",
+  "version": "1.0.22",
+  "description": "Type-safe React form hooks with Zod validation and React Query integration. Bring your own HTTP client and toast library.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -18,13 +18,20 @@
       "default": "./dist/index.mjs"
     }
   },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/index.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
     "clean": "rm -rf dist",
     "build": "bun run clean && bun run build:js && bun run build:types",
-    "build:js": "bun build ./src/index.ts --banner '\"use client\";' --outfile ./dist/index.mjs --target node --format esm --external react --external react-hook-form --external zod --external @tanstack/react-query --external axios --external sonner && bun build ./src/index.ts --outfile ./dist/index.cjs --target node --format cjs --external react --external react-hook-form --external zod --external @tanstack/react-query --external axios --external sonner && cp ./dist/index.mjs ./dist/index.js",
+    "build:js": "bun build ./src/index.ts --banner '\"use client\";' --outfile ./dist/index.mjs --target node --format esm --external react --external react-hook-form --external zod --external @tanstack/react-query && bun build ./src/index.ts --outfile ./dist/index.cjs --target node --format cjs --external react --external react-hook-form --external zod --external @tanstack/react-query && cp ./dist/index.mjs ./dist/index.js",
     "build:types": "tsc --emitDeclarationOnly --outDir dist",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
@@ -35,17 +42,9 @@
     "react": ">=18.0.0",
     "react-hook-form": "^7.0.0",
     "zod": "^3.0.0 || ^4.0.0",
-    "@tanstack/react-query": ">=5.0.0",
-    "axios": "^1.0.0",
-    "sonner": ">=1.0.0"
+    "@tanstack/react-query": ">=5.0.0"
   },
   "peerDependenciesMeta": {
-    "axios": {
-      "optional": true
-    },
-    "sonner": {
-      "optional": true
-    },
     "@tanstack/react-query": {
       "optional": true
     }

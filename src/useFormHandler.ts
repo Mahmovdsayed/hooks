@@ -30,6 +30,7 @@ export interface UseFormHandlerOptions<
   endpoint?: string;
   method?: "post" | "patch" | "put" | "delete";
   service?: (data: TData) => Promise<any>;
+  axiosInstance?: any;
   defaultValues?: DefaultValues<TData>;
   values?: TData;
   transformData?: (data: TData) => any;
@@ -68,29 +69,52 @@ const defaultParseError: ErrorParser = (err) => {
     }
   } else if (err instanceof Error) {
     message = err.message;
+  } else if (err?.response?.data?.message) {
+    message = err.response.data.message;
   }
   return { message };
 };
 
-const getAxios = (): any | null => {
-  try {
-    // @ts-ignore – axios is an optional peer dependency
-    const m = require("axios");
-    return m.default || m;
-  } catch {
-    return null;
-  }
-};
+async function runFetch(
+  endpoint: string,
+  method: string,
+  payload: any,
+  useFormData: boolean,
+  axiosConfig: Record<string, any>,
+  signal: AbortSignal | undefined,
+): Promise<any> {
+  const headers: Record<string, string> = {
+    ...(axiosConfig.headers || {}),
+    ...(!useFormData ? { "Content-Type": "application/json" } : {}),
+  };
 
-const getSonnerToast = (): any | null => {
-  try {
-    // @ts-ignore – sonner is an optional peer dependency
-    const m = require("sonner");
-    return m.toast || m;
-  } catch {
-    return null;
+  const res = await fetch(endpoint, {
+    method: method.toUpperCase(),
+    headers,
+    body: useFormData ? payload : JSON.stringify(payload),
+    signal,
+    credentials: axiosConfig.withCredentials ? "include" : "same-origin",
+  });
+
+  let data: any;
+  const contentType = res.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    data = await res.json();
+  } else {
+    data = await res.text();
   }
-};
+
+  if (!res.ok) {
+    const message =
+      (typeof data === "object" && data?.message) ||
+      `Request failed with status ${res.status}`;
+    const error: any = new Error(message);
+    error.response = { data, status: res.status };
+    throw error;
+  }
+
+  return data;
+}
 
 export function useFormHandlerInternal<
   TSchema extends ZodType<FieldValues, any, any>,
@@ -133,6 +157,7 @@ export function useFormHandlerInternal<
         endpoint,
         method = "post",
         service,
+        axiosInstance,
         transformData,
         onMutate,
         onSuccess,
@@ -148,30 +173,18 @@ export function useFormHandlerInternal<
         parseError = defaultParseError,
       } = currentOptions;
 
+      const notifyFn: NotifyFn = notify ?? (() => {});
+
       let context: any;
       const transformedData = transformData ? transformData(data) : data;
-
-      let notifyFn: NotifyFn;
-      if (notify) {
-        notifyFn = notify;
-      } else {
-        const toast = getSonnerToast();
-        if (toast) {
-          notifyFn = (message: string, type: "success" | "error") => {
-            if (type === "success") {
-              toast.success(message);
-            } else {
-              toast.error(message);
-            }
-          };
-        } else {
-          notifyFn = () => {};
-        }
-      }
 
       if (enableAbort) {
         abortControllerRef.current = new AbortController();
       }
+
+      const signal = enableAbort
+        ? abortControllerRef.current?.signal
+        : undefined;
 
       try {
         setLoading(true);
@@ -211,26 +224,13 @@ export function useFormHandlerInternal<
 
         if (service) {
           responseData = await service(payload);
-        } else {
-          if (!endpoint) {
-            throw new Error("No endpoint or service provided");
-          }
-
-          const axiosInstance = getAxios();
-          if (!axiosInstance) {
-            throw new Error(
-              "axios is not installed. Please install axios or provide a custom `service` function.",
-            );
-          }
-
+        } else if (endpoint && axiosInstance) {
           const config: any = {
             method,
             url: endpoint,
             data: payload,
             ...axiosConfig,
-            signal: enableAbort
-              ? abortControllerRef.current?.signal
-              : undefined,
+            signal,
             headers: useFormData
               ? {
                   ...axiosConfig.headers,
@@ -240,6 +240,19 @@ export function useFormHandlerInternal<
           };
           const res = await axiosInstance(config);
           responseData = res.data;
+        } else if (endpoint) {
+          responseData = await runFetch(
+            endpoint,
+            method,
+            payload,
+            useFormData,
+            axiosConfig,
+            signal,
+          );
+        } else {
+          throw new Error(
+            "[@hirely/hooks] Provide either `endpoint` or a custom `service` function.",
+          );
         }
 
         const parsed = parseResponse(responseData);
