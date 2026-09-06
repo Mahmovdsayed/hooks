@@ -5,7 +5,7 @@
     "url": "git+https://github.com/Mahmovdsayed/hooks.git"
   },
   "homepage": "https://github.com/Mahmovdsayed/hooks#readme",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "description": "Type-safe React form hooks with Zod validation and React Query integration. Bring your own HTTP client and toast library.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
