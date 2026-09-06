@@ -2,34 +2,68 @@
 
 <div align="center">
 
-[![npm version](https://img.shields.io/npm/v/@hirely/hooks.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/@hirely/hooks)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-7.0+-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![npm version](https://img.shields.io/npm/v/@hirely/hooks.svg?style=flat-square&color=6366f1)](https://www.npmjs.com/package/@hirely/hooks)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@hirely/hooks?style=flat-square&color=22c55e&label=minzipped)](https://bundlephobia.com/package/@hirely/hooks)
+[![License: MIT](https://img.shields.io/badge/License-MIT-f59e0b.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18_%7C_19-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
-[![Bun](https://img.shields.io/badge/Bun-Optimized-fbf0df?style=flat-square&logo=bun&logoColor=black)](https://bun.sh)
-[![Tests](https://img.shields.io/badge/Tests-100%25_Passing-brightgreen?style=flat-square)](https://github.com/hirely/hooks)
+[![Bun](https://img.shields.io/badge/Built_with-Bun-fbf0df?style=flat-square&logo=bun&logoColor=black)](https://bun.sh)
 
-<p align="center">
-  <strong>Production-ready, type-safe React form hook with Zod validation, seamless HTTP integration (Axios/fetch/Server Actions), and toast notifications.</strong>
-</p>
+<br/>
 
-<p align="center">
-  <em>Zero forced runtime dependencies &bull; Built-in render optimizations &bull; Full React 18 & 19 Support</em>
-</p>
+**The last form hook you'll ever need.**
+
+Production-ready, fully type-safe React form management with Zod validation,  
+optional Axios / Sonner / TanStack Query integration — zero forced dependencies.
+
+<br/>
 
 </div>
 
 ---
 
-## Highlights
+## Why `@hirely/hooks`?
 
-- 🛡️ **End-to-End Type Safety** &ndash; Define your Zod schema once; get instant compile-time validation and form inference.
-- ⚡ **High Performance & Zero-Render Overhead** &ndash; Internal callback ref stabilization guarantees that `onSubmit` and handlers remain referentially stable across re-renders even when passing inline functions.
-- 🧩 **Zero Forced Dependencies** &ndash; Works out of the box with custom services, Next.js Server Actions, or native `fetch`. Axios and Sonner are dynamically loaded **only if requested**.
-- 🚀 **Cached Module Loading** &ndash; Dynamic imports for optional libraries are cached in memory for sub-millisecond subsequent submissions.
-- 🔄 **TanStack Query v5 Ready** &ndash; First-class `useFormMutation` hook combining form management and async mutations.
-- 🌐 **Global Defaults** &ndash; Configure once via `createFormHandler` factory or wrap sections with `FormHandlerProvider`.
-- 📦 **Modern Dual ESM/CJS Bundle** &ndash; Native ESM (`.mjs`/`.js`), CommonJS (`.cjs`), complete TypeScript definitions (`.d.ts`), and `"use client";` directives for Next.js App Router.
+Writing forms in React usually means wiring up `react-hook-form` + `zod` + your HTTP client + a toast library + loading/error state — every single time. `@hirely/hooks` does all of that in one hook call:
+
+```tsx
+// Before
+const schema = z.object({ email: z.string().email() });
+const { register, handleSubmit, formState } = useForm({ resolver: zodResolver(schema) });
+const [loading, setLoading] = useState(false);
+const onSubmit = handleSubmit(async (data) => {
+  setLoading(true);
+  try {
+    await axios.post("/api/login", data);
+    toast.success("Logged in!");
+  } catch (e) {
+    toast.error(e.message);
+  } finally {
+    setLoading(false);
+  }
+});
+
+// After — with @hirely/hooks
+const { register, onSubmit, loading } = useFormHandler({
+  schema,
+  endpoint: "/api/login",
+});
+```
+
+---
+
+## Features
+
+| | Feature | Detail |
+|---|---|---|
+| 🛡️ | **End-to-end type safety** | Define your Zod schema once — get inferred form types, auto-complete, and compile-time checks |
+| ⚡ | **Stable references** | `onSubmit` and handlers are referentially stable across re-renders — no wasted renders |
+| 🔌 | **Bring your own client** | Works with `axios`, `fetch`, Next.js Server Actions, or any async function |
+| 🔔 | **Smart notifications** | Auto-detects Sonner if installed; falls back gracefully or accepts a custom `notify` fn |
+| 🔄 | **TanStack Query v5** | `useFormMutation` merges form state + mutation cache + retry logic into one hook |
+| 🌐 | **Global defaults** | `createFormHandler` factory and `FormHandlerProvider` context for app-wide config |
+| 📦 | **Dual ESM + CJS** | Native ESM (`.mjs`), CommonJS (`.cjs`), and full TypeScript declarations (`.d.ts`) |
+| 🚀 | **Next.js App Router** | `"use client"` directive included — works in RSC architectures out of the box |
 
 ---
 
@@ -37,21 +71,21 @@
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
-- [Core API](#core-api)
-  - [`useFormHandler`](#useformhandleroptions)
+- [Core API — `useFormHandler`](#core-api--useformhandler)
+  - [Options](#options)
   - [Return Value](#return-value)
-- [Next.js Server Actions](#using-with-nextjs-server-actions)
-- [React Query Integration (`useFormMutation`)](#react-query-integration-useformmutation)
-- [Global Configuration](#global-configuration)
-  - [Factory Pattern (`createFormHandler`)](#1-factory-pattern-createformhandler)
-  - [React Context (`FormHandlerProvider`)](#2-react-context-formhandlerprovider)
-- [Higher-Order Component (`withFormHandler`)](#higher-order-component-withformhandler)
-- [Recipes & Advanced Usage](#recipes--advanced-usage)
-  - [File Uploads (`useFormData`)](#file-uploads-with-formdata)
-  - [Request Cancellation (`enableAbort`)](#request-cancellation)
+- [Recipes](#recipes)
+  - [Next.js Server Actions](#nextjs-server-actions)
+  - [Native `fetch`](#native-fetch)
+  - [File Uploads](#file-uploads)
+  - [Request Cancellation](#request-cancellation)
   - [Optimistic Updates](#optimistic-updates)
-  - [Native `fetch` Client](#using-native-fetch)
   - [Custom Response & Error Parsers](#custom-response--error-parsers)
+- [TanStack Query — `useFormMutation`](#tanstack-query--useformmutation)
+- [Global Configuration](#global-configuration)
+  - [Factory — `createFormHandler`](#factory--createformhandler)
+  - [Context — `FormHandlerProvider`](#context--formhandlerprovider)
+- [Higher-Order Component — `withFormHandler`](#higher-order-component--withformhandler)
 - [License](#license)
 
 ---
@@ -59,7 +93,7 @@
 ## Installation
 
 ```bash
-# Bun
+# Bun (recommended)
 bun add @hirely/hooks
 
 # npm
@@ -72,32 +106,35 @@ pnpm add @hirely/hooks
 yarn add @hirely/hooks
 ```
 
-### Peer Dependencies
-
-Install the core dependencies:
+### Required peer dependencies
 
 ```bash
-# Required
 bun add react react-hook-form zod
 ```
 
-**Optional dependencies** (only required if you use their respective features):
+### Optional peer dependencies
+
+Install only what you use:
+
+| Package | When you need it |
+|---|---|
+| `axios` | When using `endpoint` without a custom `service` |
+| `sonner` | For automatic toast notifications without a custom `notify` |
+| `@tanstack/react-query` | When using `useFormMutation` |
 
 ```bash
-# For default HTTP client and toast notifications:
-bun add axios sonner
-
-# For TanStack React Query integration:
-bun add @tanstack/react-query
+bun add axios sonner @tanstack/react-query
 ```
 
-> **Note:** If you pass your own async `service` or `notify` handler, you don't even need `axios` or `sonner`.
+> **Tip:** If you provide your own `service` and `notify`, you need none of the above.
 
 ---
 
 ## Quick Start
 
 ```tsx
+"use client";
+
 import { useFormHandler } from "@hirely/hooks";
 import { z } from "zod";
 
@@ -107,20 +144,31 @@ const loginSchema = z.object({
 });
 
 export function LoginForm() {
-  const { register, onSubmit, loading, error } = useFormHandler({
+  const { register, onSubmit, loading, error, formState } = useFormHandler({
     schema: loginSchema,
     endpoint: "/api/auth/login",
-    onSuccess: (data) => {
-      console.log("Logged in successfully:", data);
+    onSuccess: () => {
+      // redirect, update cache, etc.
     },
   });
 
   return (
-    <form onSubmit={onSubmit} className="form-container">
-      <input {...register("email")} type="email" placeholder="Email" />
-      <input {...register("password")} type="password" placeholder="Password" />
+    <form onSubmit={onSubmit}>
+      <div>
+        <input {...register("email")} type="email" placeholder="Email" />
+        {formState.errors.email && (
+          <p>{formState.errors.email.message}</p>
+        )}
+      </div>
 
-      {error && <p className="error-text">{error.message}</p>}
+      <div>
+        <input {...register("password")} type="password" placeholder="Password" />
+        {formState.errors.password && (
+          <p>{formState.errors.password.message}</p>
+        )}
+      </div>
+
+      {error && <p className="form-error">{error.message}</p>}
 
       <button type="submit" disabled={loading}>
         {loading ? "Signing in..." : "Sign In"}
@@ -132,83 +180,79 @@ export function LoginForm() {
 
 ---
 
-## Core API
-
-### `useFormHandler(options)`
+## Core API — `useFormHandler`
 
 ```ts
 const form = useFormHandler(options);
 ```
 
-#### Options
+### Options
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `schema` | `ZodType<FieldValues>` | *Required* | Zod schema used for form validation and type inference. |
-| `endpoint` | `string` | `undefined` | Target URL (used with Axios if no custom `service` is provided). |
-| `method` | `'post' \| 'patch' \| 'put' \| 'delete'` | `'post'` | HTTP method for `endpoint`. |
-| `service` | `(data: TData) => Promise<any>` | `undefined` | Custom async function (Server Action, `fetch`, SDK). Overrides `endpoint`. |
-| `defaultValues` | `DefaultValues<TData>` | `undefined` | Default values for form fields. |
-| `values` | `TData` | `undefined` | Reactive external values synced to the form. |
-| `transformData` | `(data: TData) => any` | `undefined` | Transform payload prior to submission. |
-| `onMutate` | `(data: TData) => any \| Promise<any>` | `undefined` | Pre-submission hook. Return value is passed as `context` to `onSuccess`/`onError`. |
-| `onSuccess` | `(data: any, context?: any) => void` | `undefined` | Callback invoked after a successful submission. |
-| `onError` | `(error: any, context?: any) => void` | `undefined` | Callback invoked upon submission failure. |
-| `onSubmitStart` | `() => void` | `undefined` | Triggered immediately when submission initiates. |
-| `onSubmitEnd` | `() => void` | `undefined` | Triggered when submission concludes (success or error). |
-| `notify` | `(message: string, type: 'success' \| 'error') => void` | Sonner toast | Custom notification function. Falls back to Sonner if installed. |
-| `resetOptions` | `object` | `{ resetAfterSuccess: true, keepDefaultValues: true }` | Controls form reset behavior on success. |
-| `useFormData` | `boolean` | `false` | Automatically converts payload to `FormData` (supports `File` and `Blob`). |
-| `enableAbort` | `boolean` | `false` | Enables `abort()` method to cancel in-flight HTTP requests. |
-| `axiosConfig` | `Record<string, any>` | `{}` | Additional configuration passed to Axios. |
-| `mode` | `'onSubmit' \| 'onBlur' \| 'onChange' \| 'onTouched' \| 'all'` | `'onSubmit'` | React Hook Form validation mode. |
-| `reValidateMode`| `'onChange' \| 'onBlur' \| 'onSubmit'` | `'onChange'` | Validation mode on re-renders after submit. |
-| `parseResponse` | `(res: any) => { success: boolean, message?: string, data?: any }` | Standard parser | Custom response validator and extractor. |
-| `parseError` | `(err: any) => { message: string }` | Axios error parser | Custom error message extractor. |
-
----
+| `schema` | `ZodType<FieldValues>` | **required** | Zod schema for validation and type inference |
+| `endpoint` | `string` | `undefined` | API URL — uses Axios if no `service` is provided |
+| `method` | `'post' \| 'patch' \| 'put' \| 'delete'` | `'post'` | HTTP method for `endpoint` |
+| `service` | `(data: TData) => Promise<any>` | `undefined` | Custom async function — overrides `endpoint` |
+| `defaultValues` | `DefaultValues<TData>` | `undefined` | Initial field values |
+| `values` | `TData` | `undefined` | Reactive external values synced into the form |
+| `transformData` | `(data: TData) => any` | `undefined` | Transform payload before submission |
+| `onMutate` | `(data: TData) => any \| Promise<any>` | `undefined` | Pre-submission hook; return value becomes `context` |
+| `onSuccess` | `(data: any, context?: any) => void` | `undefined` | Called after a successful submission |
+| `onError` | `(error: any, context?: any) => void` | `undefined` | Called on submission failure |
+| `onSubmitStart` | `() => void` | `undefined` | Called when submission begins |
+| `onSubmitEnd` | `() => void` | `undefined` | Called when submission ends (success or error) |
+| `notify` | `(message: string, type: 'success' \| 'error') => void` | auto Sonner | Custom notification function |
+| `resetOptions` | `{ resetAfterSuccess?, keepDefaultValues?, keepDirty? }` | `{ resetAfterSuccess: true, keepDefaultValues: true }` | Controls form reset on success |
+| `useFormData` | `boolean` | `false` | Serialize payload as `FormData` (supports `File`, `Blob`) |
+| `enableAbort` | `boolean` | `false` | Enables `abort()` to cancel in-flight requests |
+| `axiosConfig` | `Record<string, any>` | `{}` | Extra config forwarded to Axios |
+| `mode` | `'onSubmit' \| 'onBlur' \| 'onChange' \| 'onTouched' \| 'all'` | `'onSubmit'` | Validation trigger mode |
+| `reValidateMode` | `'onChange' \| 'onBlur' \| 'onSubmit'` | `'onChange'` | Re-validation mode after first submit |
+| `parseResponse` | `(res: any) => { success: boolean, message?: string }` | built-in | Custom response shape parser |
+| `parseError` | `(err: any) => { message: string }` | built-in | Custom error message extractor |
 
 ### Return Value
 
-Returns **everything from React Hook Form's `useForm`** (`register`, `watch`, `setValue`, `getValues`, `formState`, `control`, etc.) along with:
+Returns **all of React Hook Form's `useForm` return** — `register`, `watch`, `setValue`, `getValues`, `control`, `formState`, `reset`, etc. — plus:
 
 | Property | Type | Description |
 |---|---|---|
-| `onSubmit` | `(e?: unknown) => Promise<void>` | Stable submit handler ready to attach to `<form onSubmit={onSubmit}>`. |
-| `loading` | `boolean` | `true` while the async request or service is active. |
-| `error` | `Error \| null` | Error object if submission failed. |
-| `setError` | `React.Dispatch<React.SetStateAction<Error \| null>>` | Manually set or clear the form error state. |
-| `abort` | `(() => void) \| undefined` | Cancels the active in-flight request (active when `enableAbort: true`). |
+| `onSubmit` | `(e?: unknown) => Promise<void>` | Submit handler — attach directly to `<form onSubmit={onSubmit}>` |
+| `loading` | `boolean` | `true` while the request is in-flight |
+| `error` | `Error \| null` | Submission error, if any |
+| `setError` | `React.Dispatch` | Manually set or clear the error state |
+| `abort` | `(() => void) \| undefined` | Cancel the current request (only when `enableAbort: true`) |
 
 ---
 
-## Using with Next.js Server Actions
+## Recipes
 
-Because `service` accepts any standard async function, you can plug in **Next.js Server Actions** directly with full type safety:
+### Next.js Server Actions
+
+`service` accepts any async function — plug in Server Actions directly:
 
 ```ts
-// app/actions/user.ts
+// app/actions/auth.ts
 "use server";
-
 import { z } from "zod";
 
-const createUserSchema = z.object({
+const signUpSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
 });
 
-export async function createUserAction(data: z.infer<typeof createUserSchema>) {
-  // Database or external API call
-  return { success: true, message: "Account created!", id: "user_123" };
+export async function signUpAction(data: z.infer<typeof signUpSchema>) {
+  // call your database / external API
+  return { success: true, message: "Account created!", userId: "u_123" };
 }
 ```
 
 ```tsx
-// app/components/SignupForm.tsx
+// app/components/SignUpForm.tsx
 "use client";
-
 import { useFormHandler } from "@hirely/hooks";
-import { createUserAction } from "@/app/actions/user";
+import { signUpAction } from "@/app/actions/auth";
 import { z } from "zod";
 
 const schema = z.object({
@@ -216,17 +260,17 @@ const schema = z.object({
   email: z.string().email(),
 });
 
-export function SignupForm() {
+export function SignUpForm() {
   const { register, onSubmit, loading } = useFormHandler({
     schema,
-    service: createUserAction,
-    onSuccess: (data) => console.log("Created user ID:", data.id),
+    service: signUpAction,
+    onSuccess: (data) => console.log("User ID:", data.userId),
   });
 
   return (
     <form onSubmit={onSubmit}>
-      <input {...register("name")} placeholder="Your name" />
-      <input {...register("email")} placeholder="Your email" />
+      <input {...register("name")} placeholder="Name" />
+      <input {...register("email")} placeholder="Email" />
       <button type="submit" disabled={loading}>
         {loading ? "Creating..." : "Create Account"}
       </button>
@@ -237,18 +281,131 @@ export function SignupForm() {
 
 ---
 
-## React Query Integration (`useFormMutation`)
-
-For projects using **@tanstack/react-query**, `useFormMutation` unites form management with React Query's cache invalidation, mutation tracking, and retry logic:
+### Native `fetch`
 
 ```tsx
+const { register, onSubmit, loading } = useFormHandler({
+  schema: itemSchema,
+  service: async (data) => {
+    const res = await fetch("/api/items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+    return res.json();
+  },
+});
+```
+
+---
+
+### File Uploads
+
+Set `useFormData: true` to automatically serialize `File`, `Blob`, and arrays of files into `FormData`:
+
+```tsx
+const uploadSchema = z.object({
+  title: z.string().min(1),
+  avatar: z.instanceof(File),
+});
+
+const { register, onSubmit, setValue } = useFormHandler({
+  schema: uploadSchema,
+  endpoint: "/api/upload",
+  useFormData: true, // automatically sets Content-Type: multipart/form-data
+});
+
+// Wire up a file input:
+<input
+  type="file"
+  onChange={(e) => setValue("avatar", e.target.files?.[0])}
+/>
+```
+
+---
+
+### Request Cancellation
+
+```tsx
+const { onSubmit, abort, loading } = useFormHandler({
+  schema: reportSchema,
+  endpoint: "/api/generate-report",
+  enableAbort: true,
+});
+
+return (
+  <form onSubmit={onSubmit}>
+    <button type="submit" disabled={loading}>Generate</button>
+    {loading && (
+      <button type="button" onClick={abort}>✕ Cancel</button>
+    )}
+  </form>
+);
+```
+
+---
+
+### Optimistic Updates
+
+Use `onMutate` for client-side updates before the request resolves, and roll back on error:
+
+```tsx
+const { onSubmit } = useFormHandler({
+  schema: taskSchema,
+  endpoint: "/api/tasks/42",
+  method: "patch",
+  onMutate: async (newData) => {
+    const previous = currentTask; // snapshot
+    setTask((prev) => ({ ...prev, ...newData })); // optimistic update
+    return { previous }; // returned as `context`
+  },
+  onError: (_error, context) => {
+    setTask(context.previous); // rollback
+  },
+});
+```
+
+---
+
+### Custom Response & Error Parsers
+
+Adapt to any API response shape:
+
+```tsx
+useFormHandler({
+  schema: mySchema,
+  endpoint: "/api/data",
+  parseResponse: (res) => ({
+    success: res.statusCode === 200,
+    message: res.statusText,
+    data: res.payload,
+  }),
+  parseError: (err) => ({
+    message:
+      err.response?.data?.errorDescription ??
+      err.message ??
+      "Something went wrong",
+  }),
+});
+```
+
+---
+
+## TanStack Query — `useFormMutation`
+
+Combines form state with React Query's cache management, retry logic, and mutation lifecycle:
+
+```tsx
+"use client";
+
 import { useFormMutation } from "@hirely/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
 const postSchema = z.object({
-  title: z.string().min(1),
-  content: z.string().min(10),
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(10, "Content too short"),
 });
 
 export function CreatePost() {
@@ -256,15 +413,21 @@ export function CreatePost() {
 
   const {
     register,
-    mutate,
+    onSubmit,
     isPending,
-    isLoading, // backward compatible alias for isPending
+    isError,
     error,
-    reset,      // resets both mutation and form fields
+    formError,
+    data,
+    reset,       // resets both the form AND the mutation
+    resetForm,   // resets only the form
+    resetMutation,
+    status,
   } = useFormMutation({
     schema: postSchema,
     endpoint: "/api/posts",
     mutationOptions: {
+      retry: 2,
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["posts"] });
       },
@@ -272,73 +435,80 @@ export function CreatePost() {
   });
 
   return (
-    <form onSubmit={mutate}>
+    <form onSubmit={onSubmit}>
       <input {...register("title")} placeholder="Title" />
       <textarea {...register("content")} placeholder="Content" />
+
+      {formError && <p>Form error: {formError.message}</p>}
+      {isError && <p>Mutation error: {error?.message}</p>}
+
       <button type="submit" disabled={isPending}>
-        {isPending ? "Publishing..." : "Publish Post"}
+        {isPending ? "Publishing..." : "Publish"}
       </button>
+      <button type="button" onClick={reset}>Reset</button>
     </form>
   );
 }
 ```
 
-### `useFormMutation` Return Properties
+### `useFormMutation` extra return properties
 
-In addition to all form handler properties, it includes:
-- `mutate` & `mutateAsync` &ndash; Trigger mutation with typed variables.
-- `isPending` &ndash; TanStack Query v5 pending state boolean.
-- `isLoading` &ndash; Backwards-compatible alias for `isPending`.
-- `isError` & `error` &ndash; Mutation error state.
-- `formError` &ndash; Dedicated form-level error (if distinct).
-- `data` &ndash; Response data from mutation.
-- `reset` &ndash; Atomically resets **both** the form fields and the mutation state.
-- `resetForm` & `resetMutation` &ndash; Independent reset triggers.
-- `status` &ndash; Current mutation status (`'idle' | 'pending' | 'success' | 'error'`).
+| Property | Type | Description |
+|---|---|---|
+| `mutate` | `UseMutateFunction` | Fire the mutation imperatively |
+| `mutateAsync` | `UseMutateAsyncFunction` | Fire the mutation and `await` the result |
+| `isPending` | `boolean` | TanStack Query v5 pending state |
+| `isLoading` | `boolean` | Alias for `isPending` (backwards compatible) |
+| `isError` | `boolean` | Whether the mutation errored |
+| `error` | `TError \| null` | Mutation-level error |
+| `formError` | `Error \| null` | Form-level error (from `useFormHandler`) |
+| `data` | `TResponse \| undefined` | Mutation response data |
+| `reset` | `() => void` | Resets **both** form and mutation state |
+| `resetForm` | `UseFormReturn["reset"]` | Resets only the form |
+| `resetMutation` | `() => void` | Resets only the mutation |
+| `status` | `'idle' \| 'pending' \| 'success' \| 'error'` | Current mutation status |
 
 ---
 
 ## Global Configuration
 
-### 1. Factory Pattern (`createFormHandler`)
+### Factory — `createFormHandler`
 
-Create a pre-configured hook with company-wide defaults (such as custom notification libraries or API interceptors):
+Create a pre-configured hook with your app's defaults:
 
-```tsx
+```ts
 // lib/form.ts
 import { createFormHandler } from "@hirely/hooks";
+import { toast } from "your-toast-library";
 
 export const useAppForm = createFormHandler({
   mode: "onBlur",
+  axiosConfig: {
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    withCredentials: true,
+  },
   resetOptions: { resetAfterSuccess: true, keepDefaultValues: false },
   notify: (msg, type) => {
-    if (type === "success") console.log("[Success]", msg);
-    else console.error("[Error]", msg);
+    type === "success" ? toast.success(msg) : toast.error(msg);
   },
 });
 ```
 
 ```tsx
-// FeatureComponent.tsx
+// Any component
 import { useAppForm } from "@/lib/form";
-import { z } from "zod";
 
-const schema = z.object({ query: z.string() });
-
-export function SearchForm() {
-  // Inherits global defaults, but you can override any option locally:
-  const { register, onSubmit } = useAppForm({
-    schema,
-    endpoint: "/api/search",
-  });
-
-  return <form onSubmit={onSubmit}>...</form>;
-}
+const { register, onSubmit } = useAppForm({
+  schema: mySchema,
+  endpoint: "/api/resource", // inherits baseURL, withCredentials, etc.
+});
 ```
 
-### 2. React Context (`FormHandlerProvider`)
+---
 
-Scope configurations to sub-trees of your component hierarchy:
+### Context — `FormHandlerProvider`
+
+Scope defaults to a sub-tree of your component hierarchy:
 
 ```tsx
 import { FormHandlerProvider } from "@hirely/hooks";
@@ -347,7 +517,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <FormHandlerProvider
       defaultOptions={{
-        axiosConfig: { headers: { "X-Admin-Scope": "true" } },
+        axiosConfig: { headers: { "X-Admin-Token": "true" } },
         resetOptions: { resetAfterSuccess: false },
       }}
     >
@@ -357,13 +527,13 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 }
 ```
 
-Any `useFormHandler` within this tree automatically merges provider defaults with local options.
+Every `useFormHandler` inside this tree inherits and deep-merges the provider's defaults with any local overrides.
 
 ---
 
-## Higher-Order Component (`withFormHandler`)
+## Higher-Order Component — `withFormHandler`
 
-For legacy class components or HOC architecture:
+For class components or HOC-based architectures:
 
 ```tsx
 import React from "react";
@@ -376,25 +546,30 @@ const feedbackSchema = z.object({
   notes: z.string().optional(),
 });
 
-type FeedbackProps = {
+type Props = {
   formHandler: ReturnType<typeof useFormHandler<typeof feedbackSchema>>;
   category: string;
 };
 
-class FeedbackView extends React.Component<FeedbackProps> {
+class FeedbackForm extends React.Component<Props> {
   render() {
     const { formHandler, category } = this.props;
     return (
       <form onSubmit={formHandler.onSubmit}>
         <h3>Category: {category}</h3>
-        <input type="number" {...formHandler.register("rating", { valueAsNumber: true })} />
-        <button type="submit" disabled={formHandler.loading}>Submit</button>
+        <input
+          type="number"
+          {...formHandler.register("rating", { valueAsNumber: true })}
+        />
+        <button type="submit" disabled={formHandler.loading}>
+          Submit
+        </button>
       </form>
     );
   }
 }
 
-export default withFormHandler(FeedbackView, {
+export default withFormHandler(FeedbackForm, {
   schema: feedbackSchema,
   endpoint: "/api/feedback",
 });
@@ -402,102 +577,6 @@ export default withFormHandler(FeedbackView, {
 
 ---
 
-## Recipes & Advanced Usage
-
-### File Uploads with `FormData`
-
-Enable `useFormData: true` to serialize payloads containing `File`, `Blob`, arrays of files, or text fields into standard `FormData`:
-
-```tsx
-const uploadSchema = z.object({
-  title: z.string(),
-  avatar: z.instanceof(File),
-});
-
-const { register, onSubmit, setValue } = useFormHandler({
-  schema: uploadSchema,
-  endpoint: "/api/upload",
-  useFormData: true,
-});
-```
-
-### Request Cancellation
-
-Set `enableAbort: true` to get an `abort()` handle that cleanly cancels running requests:
-
-```tsx
-const { onSubmit, abort, loading } = useFormHandler({
-  schema: largeReportSchema,
-  endpoint: "/api/generate-report",
-  enableAbort: true,
-});
-
-return (
-  <form onSubmit={onSubmit}>
-    <button type="submit" disabled={loading}>Generate</button>
-    {loading && <button type="button" onClick={abort}>Cancel</button>}
-  </form>
-);
-```
-
-### Optimistic Updates
-
-Use `onMutate` to perform client-side updates before the request completes and rollback on error:
-
-```tsx
-const { onSubmit } = useFormHandler({
-  schema: updateTaskSchema,
-  endpoint: "/api/tasks/1",
-  onMutate: async (newData) => {
-    const previous = currentTask;
-    setTask((prev) => ({ ...prev, ...newData }));
-    return { previous }; // passed as `context`
-  },
-  onError: (error, context) => {
-    // Rollback to original state
-    setTask(context.previous);
-  },
-});
-```
-
-### Using Native `fetch`
-
-```tsx
-const { onSubmit } = useFormHandler({
-  schema: itemSchema,
-  service: async (data) => {
-    const res = await fetch("/api/items", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Request failed with status " + res.status);
-    return res.json();
-  },
-});
-```
-
-### Custom Response & Error Parsers
-
-Adapt `@hirely/hooks` to any API response schema:
-
-```tsx
-useFormHandler({
-  schema: mySchema,
-  endpoint: "/api/custom",
-  parseResponse: (res) => ({
-    success: res.code === 200,
-    message: res.statusText,
-    data: res.payload,
-  }),
-  parseError: (err) => ({
-    message: err.response?.data?.errorDescription || err.message || "Operation failed",
-  }),
-});
-```
-
----
-
 ## License
 
-[MIT](LICENSE) © Hirely
+[MIT](LICENSE) © [Hirely](https://github.com/Mahmovdsayed)
