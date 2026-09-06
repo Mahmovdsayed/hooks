@@ -5,7 +5,7 @@
     "url": "git+https://github.com/Mahmovdsayed/hooks.git"
   },
   "homepage": "https://github.com/Mahmovdsayed/hooks#readme",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "React hooks for forms with Zod validation, optional Axios and Sonner, React Query integration.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
