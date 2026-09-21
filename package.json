@@ -5,7 +5,7 @@
     "url": "git+https://github.com/Mahmovdsayed/hooks.git"
   },
   "homepage": "https://github.com/Mahmovdsayed/hooks#readme",
-  "version": "1.0.23",
+  "version": "1.1.0",
   "description": "Type-safe React hooks for forms (Zod + React Query) and Next.js URL state sync.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
