@@ -15,6 +15,7 @@ Each folder is self-contained with a working component and its own README.
 | 06 | [`06-global-provider`](./06-global-provider/) | `FormHandlerProvider` | Share defaults (toast, axios config) across all forms in a subtree |
 | 07 | [`07-with-form-handler-hoc`](./07-with-form-handler-hoc/) | `withFormHandler` | HOC pattern — inject `formHandler` as a prop |
 | 08 | [`08-create-form-handler`](./08-create-form-handler/) | `createFormHandler` | Pre-configured hook factory for project-wide reuse |
+| 09 | [`09-use-page-sync`](./09-use-page-sync/) | `usePageSync` | Sync pagination state with the `?page=` URL query param (Next.js) |
 
 ---
 
@@ -33,23 +34,8 @@ Need to share config across many forms?
 Need file upload? → useFormData: true
 Need cancellation? → enableAbort: true
 Need custom HTTP?  → service: async (data) => { ... }
+
+Need to sync state with the URL (pagination, tabs, filters)?
+  └─ Next.js App Router → usePageSync
 ```
 
----
-
-## Installation
-
-```bash
-npm install @hirely/hooks react-hook-form zod @hookform/resolvers
-# optional — for useFormMutation:
-npm install @tanstack/react-query
-```
-
-## Peer dependencies
-
-| Package | Version |
-|---|---|
-| `react` | ≥ 18.0.0 |
-| `react-hook-form` | ^7.0.0 |
-| `zod` | ^3.0.0 \|\| ^4.0.0 |
-| `@tanstack/react-query` | ≥ 5.0.0 *(optional)* |

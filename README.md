@@ -5,16 +5,17 @@
 [![npm version](https://img.shields.io/npm/v/@hirely/hooks.svg?style=flat-square&color=6366f1)](https://www.npmjs.com/package/@hirely/hooks)
 [![Bundle Size](https://img.shields.io/bundlephobia/minzip/@hirely/hooks?style=flat-square&color=22c55e&label=minzipped)](https://bundlephobia.com/package/@hirely/hooks)
 [![License: MIT](https://img.shields.io/badge/License-MIT-f59e0b.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.0+-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18_%7C_19-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![Next.js](https://img.shields.io/badge/Next.js-App_Router-000?style=flat-square&logo=next.js)](https://nextjs.org/)
 
 <br/>
 
-**The last form hook you'll ever need.**
+**The last form hook you'll ever need** — plus a URL-state hook for good measure.
 
 Type-safe React form management with Zod validation, built-in `fetch`, optional axios,  
-optional toast — bring your own HTTP client, bring your own notifications.
+optional toast — bring your own HTTP client, bring your own notifications.  
+And `usePageSync` for keeping pagination state in the URL.
 
 <br/>
 
@@ -48,20 +49,31 @@ const { register, onSubmit, loading } = useFormHandler({
 });
 ```
 
+```tsx
+// ❌ Before — pagination state scattered across useState + useEffect + router
+const [page, setPage] = useState(1);
+useEffect(() => { /* sync ?page= to state, handle back button... */ }, []);
+
+// ✅ After — one hook call
+const { currentPage, nextPage, prevPage, isFirstPage, isLastPage } =
+  usePageSync({ maxPage: 20 });
+```
+
 ---
 
 ## Features
 
 | | Feature | Detail |
 |---|---|---|
-| 🛡️ | **End-to-end type safety** | Zod schema → inferred form types, auto-complete, compile-time checks |
-| 🌐 | **Built-in `fetch`** | Works out of the box with `endpoint` — no HTTP client setup needed |
-| 🔌 | **Bring your own client** | Pass `axiosInstance`, `service`, or any async function |
-| 🔔 | **Bring your own toast** | Pass `notify` with your toast library — no sonner auto-import |
-| ⚡ | **Zero bundler issues** | No dynamic imports, no `require()`, no `node:module` — Turbopack-safe |
-| 🔄 | **TanStack Query v5** | `useFormMutation` merges form state + React Query mutations |
-| 🌍 | **Global defaults** | `createFormHandler` factory and `FormHandlerProvider` context |
-| 📦 | **Dual ESM + CJS** | ESM `.mjs`, CJS `.cjs`, TypeScript `.d.ts`, `"use client"` ready |
+|  | **End-to-end type safety** | Zod schema → inferred form types, auto-complete, compile-time checks |
+|  | **Built-in `fetch`** | Works out of the box with `endpoint` — no HTTP client setup needed |
+|  | **Bring your own client** | Pass `axiosInstance`, `service`, or any async function |
+|  | **Bring your own toast** | Pass `notify` with your toast library — no sonner auto-import |
+|  | **Zero bundler issues** | No dynamic imports, no `require()`, no `node:module` — Turbopack-safe |
+|  | **TanStack Query v5** | `useFormMutation` merges form state + React Query mutations |
+|  | **Global defaults** | `createFormHandler` factory and `FormHandlerProvider` context |
+|  | **URL state sync** | `usePageSync` keeps pagination in `?page=` with back/forward support |
+|  | **Dual ESM + CJS** | ESM `.mjs`, CJS `.cjs`, TypeScript `.d.ts`, `"use client"` ready |
 
 ---
 
@@ -85,6 +97,7 @@ bun add react react-hook-form zod
 | Package | When you need it |
 |---|---|
 | `@tanstack/react-query` | When using `useFormMutation` |
+| `next` (≥ 13.4) | When using `usePageSync` |
 
 > **No axios or sonner required.** The library uses native `fetch` by default and accepts any toast function via `notify`.
 
@@ -108,6 +121,9 @@ bun add react react-hook-form zod
   - [Optimistic Updates](#optimistic-updates)
   - [Custom Response & Error Parsers](#custom-response--error-parsers)
 - [TanStack Query — `useFormMutation`](#tanstack-query--useformmutation)
+- [URL State — `usePageSync`](#url-state--usepagesync)
+  - [Options](#usepagesync-options)
+  - [Return Value](#usepagesync-return-value)
 - [Global Configuration](#global-configuration)
   - [Factory — `createFormHandler`](#factory--createformhandler)
   - [Context — `FormHandlerProvider`](#context--formhandlerprovider)
@@ -492,6 +508,76 @@ export function CreatePost() {
 | `resetForm` | `UseFormReturn["reset"]` | Resets only the form |
 | `resetMutation` | `() => void` | Resets only the mutation |
 | `status` | `'idle' \| 'pending' \| 'success' \| 'error'` | Current mutation status |
+
+---
+
+## URL State — `usePageSync`
+
+Syncs a page number with the `?page=` query parameter. Handles browser back/forward navigation, clamping to bounds, scroll-to-top, and optional default-page omission from the URL.
+
+**Next.js App Router only.** Requires `next` ≥ 13.4 as a peer dependency.
+
+> ⚠️ Because `usePageSync` uses `useSearchParams` internally, any component that calls it **must be wrapped in a `<Suspense>` boundary**, per Next.js App Router rules.
+
+```tsx
+"use client";
+
+import { Suspense } from "react";
+import { usePageSync } from "@hirely/hooks";
+
+function Pagination() {
+  const {
+    currentPage,
+    setPage,
+    nextPage,
+    prevPage,
+    isFirstPage,
+    isLastPage,
+  } = usePageSync({ maxPage: 20 });
+
+  return (
+    <div>
+      <button onClick={prevPage} disabled={isFirstPage}>← Prev</button>
+      <span>Page {currentPage} / 20</span>
+      <button onClick={nextPage} disabled={isLastPage}>Next →</button>
+    </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <Pagination />
+    </Suspense>
+  );
+}
+```
+
+### `usePageSync` Options
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `paramName` | `string` | `"page"` | Query parameter name to sync with |
+| `defaultPage` | `number` | `1` | Fallback page when the param is missing or invalid |
+| `minPage` | `number` | `1` | Lower bound (inclusive) |
+| `maxPage` | `number` | `undefined` | Upper bound (inclusive) — useful when total pages are known |
+| `scrollToTop` | `boolean` | `true` | Scroll to top on page change |
+| `scrollBehavior` | `ScrollBehavior` | `"smooth"` | Passed to `window.scrollTo` |
+| `replace` | `boolean` | `false` | Use `router.replace` instead of `router.push` |
+| `omitDefaultInUrl` | `boolean` | `true` | Remove `?page=` from the URL when on the default page |
+| `onPageChange` | `(page: number, previous: number) => void` | `undefined` | Fired whenever the page actually changes |
+
+### `usePageSync` Return Value
+
+| Property | Type | Description |
+|---|---|---|
+| `currentPage` | `number` | The currently active page (clamped) |
+| `setPage` | `(page: number \| ((prev: number) => number)) => void` | Set the page; mirrors `useState` semantics |
+| `nextPage` | `() => void` | Go to the next page (no-op at `maxPage`) |
+| `prevPage` | `() => void` | Go to the previous page (no-op at `minPage`) |
+| `resetPage` | `() => void` | Reset to `defaultPage` |
+| `isFirstPage` | `boolean` | `true` when `currentPage === minPage` |
+| `isLastPage` | `boolean` | `true` when `maxPage` is set and `currentPage === maxPage` |
 
 ---
 
